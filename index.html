@@ -1,64 +1,888 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Computación en la Medicina</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Computación Aplicada a la Arquitectura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── VARIABLES ── */
+    :root {
+      --bg:        #060810;
+      --surface:   #0d1117;
+      --panel:     #111827;
+      --accent:    #00e5ff;
+      --accent2:   #7b2fff;
+      --accent3:   #ff6b35;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --grid:      rgba(0,229,255,0.06);
+      --glow:      0 0 20px rgba(0,229,255,0.4);
+      --glow2:     0 0 20px rgba(123,47,255,0.5);
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── ANIMACIONES ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scanline {
+      0%   { top: -10%; }
+      100% { top: 110%; }
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: var(--accent); box-shadow: var(--glow); }
+      50%       { border-color: var(--accent2); box-shadow: var(--glow2); }
+    }
+    @keyframes rotateSlow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes glitch {
+      0%,100% { clip-path: inset(0 0 100% 0); transform: skewX(0deg); }
+      10%     { clip-path: inset(10% 0 70% 0); transform: skewX(-3deg); }
+      30%     { clip-path: inset(50% 0 20% 0); transform: skewX(2deg); }
+      60%     { clip-path: inset(80% 0 5%  0); transform: skewX(-1deg); }
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    @keyframes dash {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed; top: 0; width: 100%;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 60px;
+      background: rgba(6,8,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,229,255,0.15);
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .nav-logo span { color: var(--accent2); }
+    nav ul {
+      list-style: none;
+      display: flex; gap: 36px;
+    }
+    nav ul a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+      position: relative;
+    }
+    nav ul a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    nav ul a:hover { color: var(--accent); }
+    nav ul a:hover::after { width: 100%; }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 0 60px;
+      overflow: hidden;
+    }
+    .hero-scanline {
+      position: absolute; left: 0; width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.3;
+      animation: scanline 5s linear infinite;
+    }
+    .hero-tag {
+      font-size: 0.75rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0,229,255,0.3);
+      padding: 6px 16px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s ease both;
+      animation-delay: 0.2s;
+    }
+    .hero-tag .cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--accent);
+      vertical-align: middle;
+      margin-left: 6px;
+      animation: blink 1s step-end infinite;
+    }
+    h1.hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      max-width: 750px;
+      animation: fadeUp 0.8s ease both;
+      animation-delay: 0.4s;
+    }
+    h1.hero-title .line1 { display: block; color: var(--text); }
+    h1.hero-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 520px;
+      font-size: 1.1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 24px;
+      animation: fadeUp 0.8s ease both;
+      animation-delay: 0.6s;
+    }
+    .hero-cta {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 14px 36px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+      animation: fadeUp 0.8s ease both, pulse-border 3s ease infinite;
+      animation-delay: 0.8s, 2s;
+    }
+    .hero-cta:hover {
+      background: var(--accent);
+      color: var(--bg);
+      box-shadow: var(--glow);
+    }
+
+    /* Orb decorativo */
+    .hero-orb {
+      position: absolute;
+      right: -100px; top: 50%;
+      transform: translateY(-50%);
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%,
+        rgba(0,229,255,0.12),
+        rgba(123,47,255,0.08),
+        transparent 70%);
+      border: 1px solid rgba(0,229,255,0.1);
+      animation: rotateSlow 30s linear infinite;
+    }
+    .hero-orb::before {
+      content: '';
+      position: absolute; inset: 40px;
+      border-radius: 50%;
+      border: 1px dashed rgba(0,229,255,0.15);
+      animation: rotateSlow 15s linear infinite reverse;
+    }
+    .hero-orb::after {
+      content: '';
+      position: absolute; inset: 120px;
+      border-radius: 50%;
+      border: 1px solid rgba(123,47,255,0.2);
+    }
+
+    /* Stats hero */
+    .hero-stats {
+      display: flex; gap: 48px;
+      margin-top: 56px;
+      animation: fadeUp 0.8s ease both;
+      animation-delay: 1s;
+    }
+    .stat { display: flex; flex-direction: column; }
+    .stat-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ── SECCIÓN COMÚN ── */
+    section { position: relative; z-index: 1; }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .section-title span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-divider {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      margin-bottom: 48px;
+    }
+
+    /* ── APLICACIONES ── */
+    #aplicaciones {
+      padding: 120px 60px;
+    }
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 0;
+    }
+    .app-card {
+      background: var(--panel);
+      border: 1px solid rgba(0,229,255,0.1);
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+      cursor: default;
+      animation: fadeUp 0.7s ease both;
+    }
+    .app-card:nth-child(1) { animation-delay: 0.1s; }
+    .app-card:nth-child(2) { animation-delay: 0.2s; }
+    .app-card:nth-child(3) { animation-delay: 0.3s; }
+    .app-card:nth-child(4) { animation-delay: 0.4s; }
+    .app-card:nth-child(5) { animation-delay: 0.5s; }
+    .app-card:nth-child(6) { animation-delay: 0.6s; }
+    .app-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 0.4s ease;
+    }
+    .app-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-6px); }
+    .app-card:hover::before { transform: scaleY(1); }
+    .app-card::after {
+      content: '';
+      position: absolute; bottom: -60px; right: -60px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,255,0.05), transparent);
+      transition: transform 0.4s;
+    }
+    .app-card:hover::after { transform: scale(1.5); }
+    .card-icon {
+      font-size: 2.4rem;
+      margin-bottom: 20px;
+      display: block;
+      animation: float 4s ease-in-out infinite;
+    }
+    .app-card:nth-child(2) .card-icon { animation-delay: 0.5s; }
+    .app-card:nth-child(3) .card-icon { animation-delay: 1s; }
+    .app-card:nth-child(4) .card-icon { animation-delay: 1.5s; }
+    .app-card:nth-child(5) .card-icon { animation-delay: 0.3s; }
+    .app-card:nth-child(6) .card-icon { animation-delay: 0.8s; }
+    .card-num {
+      position: absolute; top: 20px; right: 24px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      color: rgba(0,229,255,0.2);
+      letter-spacing: 2px;
+    }
+    .card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .card-desc {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .card-tag {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 4px 12px;
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: 1px solid rgba(123,47,255,0.3);
+      color: var(--accent2);
+    }
+
+    /* ── SOFTWARE ── */
+    #software {
+      padding: 120px 60px;
+      background: linear-gradient(180deg, transparent, rgba(13,17,23,0.8), transparent);
+    }
+    .software-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .software-text p {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+    .software-list {
+      list-style: none;
+      margin-top: 32px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .software-list li {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 20px;
+      border: 1px solid rgba(0,229,255,0.08);
+      background: var(--panel);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .software-list li:hover {
+      border-color: rgba(0,229,255,0.3);
+      background: rgba(0,229,255,0.04);
+    }
+    .sw-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .sw-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      color: var(--text);
+      flex: 1;
+    }
+    .sw-type {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* Diagrama SVG */
+    .software-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .software-visual svg {
+      width: 100%; max-width: 420px;
+      filter: drop-shadow(0 0 20px rgba(0,229,255,0.15));
+    }
+
+    /* ── PROCESO ── */
+    #proceso {
+      padding: 120px 60px;
+    }
+    .proceso-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      position: relative;
+      margin-top: 60px;
+    }
+    .proceso-steps::before {
+      content: '';
+      position: absolute;
+      top: 32px; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent, var(--accent), var(--accent2), var(--accent3), transparent);
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 0 12px;
+      position: relative;
+    }
+    .step-circle {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .step:hover .step-circle {
+      background: rgba(0,229,255,0.1);
+      box-shadow: var(--glow);
+    }
+    .step:nth-child(2) .step-circle { border-color: #4dd8ff; color: #4dd8ff; }
+    .step:nth-child(3) .step-circle { border-color: var(--accent2); color: var(--accent2); }
+    .step:nth-child(4) .step-circle { border-color: #a855f7; color: #a855f7; }
+    .step:nth-child(5) .step-circle { border-color: var(--accent3); color: var(--accent3); }
+    .step-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .step-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── IMPACTO ── */
+    #impacto {
+      padding: 120px 60px;
+      background: var(--surface);
+    }
+    .impacto-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .impacto-intro p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-top: 24px;
+    }
+    .impacto-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+    .impacto-item {
+      background: var(--panel);
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .impacto-item:hover { background: rgba(0,229,255,0.05); }
+    .impacto-item::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+    .impacto-item:nth-child(2)::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+    .impacto-item:nth-child(3)::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+    .impacto-item:nth-child(4)::before { background: linear-gradient(90deg, #4ade80, transparent); }
+    .impacto-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .impacto-item:nth-child(2) .impacto-num { color: var(--accent2); }
+    .impacto-item:nth-child(3) .impacto-num { color: var(--accent3); }
+    .impacto-item:nth-child(4) .impacto-num { color: #4ade80; }
+    .impacto-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .impacto-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 60px;
+      border-top: 1px solid rgba(0,229,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+    .footer-brand {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+    }
+    .footer-info {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+    .footer-line {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: rgba(0,229,255,0.25);
+      text-transform: uppercase;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      border-radius: 3px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      nav ul { gap: 20px; }
+      #hero, #aplicaciones, #software, #proceso, #impacto { padding: 80px 24px; }
+      .software-layout, .impacto-layout { grid-template-columns: 1fr; gap: 40px; }
+      .proceso-steps {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+      .proceso-steps::before { display: none; }
+      footer { flex-direction: column; gap: 20px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-    <h1>💻 Computación Aplicada a la Medicina</h1>
-    <p>Uso de sistemas digitales para apoyar diagnósticos médicos</p>
-</header>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">ARCH<span>×</span>COMP</div>
+    <ul>
+      <li><a href="#aplicaciones">Aplicaciones</a></li>
+      <li><a href="#software">Software</a></li>
+      <li><a href="#proceso">Proceso</a></li>
+      <li><a href="#impacto">Impacto</a></li>
+    </ul>
+  </nav>
 
-<section class="demo">
-    <h2>Simulación de Análisis Médico</h2>
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-scanline"></div>
+    <div class="hero-tag">Proyecto Escolar // Computación Aplicada<span class="cursor"></span></div>
+    <h1 class="hero-title">
+      <span class="line1">Arquitectura</span>
+      <span class="line2">Computacional</span>
+    </h1>
+    <p class="hero-sub">
+      La computación ha redefinido el proceso de diseño arquitectónico: desde la generación
+      de formas imposibles hasta la simulación de estructuras antes de construirlas.
+    </p>
+    <a href="#aplicaciones" class="hero-cta">Explorar →</a>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-num">70%</span>
+        <span class="stat-label">Reducción de errores</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">3x</span>
+        <span class="stat-label">Mayor velocidad de diseño</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">Formas posibles</span>
+      </div>
+    </div>
+    <div class="hero-orb"></div>
+  </section>
 
-    <div class="input-box">
-        <p><strong>Síntomas ingresados:</strong></p>
-        <ul>
-            <li>🤒 Fiebre</li>
-            <li>🤕 Dolor de cabeza</li>
-            <li>😴 Cansancio</li>
+  <!-- APLICACIONES -->
+  <section id="aplicaciones">
+    <div class="section-label">// 01 — Aplicaciones principales</div>
+    <h2 class="section-title">¿Cómo se aplica la <span>computación</span>?</h2>
+    <div class="section-divider"></div>
+    <div class="apps-grid">
+
+      <div class="app-card">
+        <span class="card-num">001</span>
+        <span class="card-icon">🏗️</span>
+        <div class="card-title">Modelado 3D Paramétrico</div>
+        <p class="card-desc">Los algoritmos permiten crear geometrías complejas definidas por parámetros matemáticos, generando formas que serían imposibles de dibujar a mano.</p>
+        <span class="card-tag">Diseño generativo</span>
+      </div>
+
+      <div class="app-card">
+        <span class="card-num">002</span>
+        <span class="card-icon">⚙️</span>
+        <div class="card-title">Análisis Estructural</div>
+        <p class="card-desc">Simulaciones por elemento finito (FEA) calculan fuerzas, tensiones y deformaciones en una estructura virtual antes de construir físicamente.</p>
+        <span class="card-tag">Ingeniería estructural</span>
+      </div>
+
+      <div class="app-card">
+        <span class="card-num">003</span>
+        <span class="card-icon">🌿</span>
+        <div class="card-title">Simulación Energética</div>
+        <p class="card-desc">Modelos computacionales predicen el consumo energético, la iluminación natural y el flujo de aire para diseñar edificios más sostenibles.</p>
+        <span class="card-tag">Arquitectura sostenible</span>
+      </div>
+
+      <div class="app-card">
+        <span class="card-num">004</span>
+        <span class="card-icon">🖨️</span>
+        <div class="card-title">Fabricación Digital</div>
+        <p class="card-desc">Desde impresión 3D hasta corte CNC, los archivos digitales se traducen directamente en componentes físicos con alta precisión.</p>
+        <span class="card-tag">CAM / Manufactura</span>
+      </div>
+
+      <div class="app-card">
+        <span class="card-num">005</span>
+        <span class="card-icon">🥽</span>
+        <div class="card-title">Realidad Virtual y AR</div>
+        <p class="card-desc">Los clientes recorren edificios no construidos en tiempo real, detectando problemas de escala, circulación o estética de forma inmersiva.</p>
+        <span class="card-tag">Visualización</span>
+      </div>
+
+      <div class="app-card">
+        <span class="card-num">006</span>
+        <span class="card-icon">🤖</span>
+        <div class="card-title">Inteligencia Artificial</div>
+        <p class="card-desc">Algoritmos de machine learning optimizan layouts, generan propuestas de diseño y predicen costos basándose en miles de proyectos anteriores.</p>
+        <span class="card-tag">IA Generativa</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SOFTWARE -->
+  <section id="software">
+    <div class="section-label">// 02 — Herramientas digitales</div>
+    <h2 class="section-title">El <span>software</span> que lo hace posible</h2>
+    <div class="section-divider"></div>
+    <div class="software-layout">
+      <div class="software-text">
+        <p>El arquitecto del siglo XXI domina tanto el lápiz como el código. Las herramientas computacionales no reemplazan la creatividad: la potencian.</p>
+        <p>Desde modeladores paramétricos hasta lenguajes de scripting, cada herramienta resuelve un problema específico del proceso de diseño.</p>
+        <ul class="software-list">
+          <li>
+            <div class="sw-dot" style="background:#00e5ff"></div>
+            <span class="sw-name">Rhino + Grasshopper</span>
+            <span class="sw-type">Paramétrico</span>
+          </li>
+          <li>
+            <div class="sw-dot" style="background:#7b2fff"></div>
+            <span class="sw-name">Revit + BIM</span>
+            <span class="sw-type">Modelado de info</span>
+          </li>
+          <li>
+            <div class="sw-dot" style="background:#ff6b35"></div>
+            <span class="sw-name">AutoCAD</span>
+            <span class="sw-type">Dibujo técnico</span>
+          </li>
+          <li>
+            <div class="sw-dot" style="background:#4ade80"></div>
+            <span class="sw-name">Unreal Engine</span>
+            <span class="sw-type">Visualización</span>
+          </li>
+          <li>
+            <div class="sw-dot" style="background:#f59e0b"></div>
+            <span class="sw-name">Python / Dynamo</span>
+            <span class="sw-type">Scripting</span>
+          </li>
         </ul>
+      </div>
+
+      <!-- SVG diagrama de flujo de datos -->
+      <div class="software-visual">
+        <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="grd" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Fondo -->
+          <circle cx="200" cy="200" r="190" fill="url(#grd)" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+          <circle cx="200" cy="200" r="130" fill="none" stroke="rgba(123,47,255,0.15)" stroke-width="1" stroke-dasharray="4 8"/>
+          <circle cx="200" cy="200" r="65" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1"/>
+
+          <!-- Nodo central -->
+          <circle cx="200" cy="200" r="36" fill="#0d1117" stroke="#00e5ff" stroke-width="2"/>
+          <text x="200" y="196" text-anchor="middle" fill="#00e5ff" font-family="Orbitron,sans-serif" font-size="8" font-weight="700">DISEÑO</text>
+          <text x="200" y="210" text-anchor="middle" fill="#00e5ff" font-family="Orbitron,sans-serif" font-size="8" font-weight="700">DIGITAL</text>
+
+          <!-- Nodos satélite -->
+          <!-- Arriba -->
+          <circle cx="200" cy="80" r="28" fill="#0d1117" stroke="#7b2fff" stroke-width="1.5"/>
+          <text x="200" y="77" text-anchor="middle" fill="#a78bfa" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Modelado</text>
+          <text x="200" y="89" text-anchor="middle" fill="#a78bfa" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">3D</text>
+          <line x1="200" y1="108" x2="200" y2="164" stroke="#7b2fff" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+
+          <!-- Derecha -->
+          <circle cx="328" cy="200" r="28" fill="#0d1117" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="328" y="197" text-anchor="middle" fill="#ff6b35" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Análisis</text>
+          <text x="328" y="209" text-anchor="middle" fill="#ff6b35" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Estructural</text>
+          <line x1="300" y1="200" x2="236" y2="200" stroke="#ff6b35" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+
+          <!-- Abajo -->
+          <circle cx="200" cy="320" r="28" fill="#0d1117" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="200" y="317" text-anchor="middle" fill="#4ade80" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Fab.</text>
+          <text x="200" y="329" text-anchor="middle" fill="#4ade80" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Digital</text>
+          <line x1="200" y1="292" x2="200" y2="236" stroke="#4ade80" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+
+          <!-- Izquierda -->
+          <circle cx="72" cy="200" r="28" fill="#0d1117" stroke="#00e5ff" stroke-width="1.5"/>
+          <text x="72" y="197" text-anchor="middle" fill="#00e5ff" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Sim.</text>
+          <text x="72" y="209" text-anchor="middle" fill="#00e5ff" font-family="Rajdhani,sans-serif" font-size="9" font-weight="600">Energía</text>
+          <line x1="100" y1="200" x2="164" y2="200" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+
+          <!-- Diagonal sup-der -->
+          <circle cx="305" cy="95" r="22" fill="#0d1117" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="305" y="92" text-anchor="middle" fill="#f59e0b" font-family="Rajdhani,sans-serif" font-size="8" font-weight="600">VR</text>
+          <text x="305" y="103" text-anchor="middle" fill="#f59e0b" font-family="Rajdhani,sans-serif" font-size="8" font-weight="600">/ AR</text>
+          <line x1="285" y1="113" x2="228" y2="168" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+
+          <!-- Diagonal inf-izq -->
+          <circle cx="95" cy="305" r="22" fill="#0d1117" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="95" y="302" text-anchor="middle" fill="#ec4899" font-family="Rajdhani,sans-serif" font-size="8" font-weight="600">IA</text>
+          <text x="95" y="313" text-anchor="middle" fill="#ec4899" font-family="Rajdhani,sans-serif" font-size="8" font-weight="600">Gen.</text>
+          <line x1="115" y1="287" x2="172" y2="232" stroke="#ec4899" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+
+          <!-- Puntos decorativos -->
+          <circle cx="200" cy="14" r="3" fill="#00e5ff" opacity="0.4"/>
+          <circle cx="386" cy="200" r="3" fill="#ff6b35" opacity="0.4"/>
+          <circle cx="200" cy="386" r="3" fill="#4ade80" opacity="0.4"/>
+          <circle cx="14" cy="200" r="3" fill="#7b2fff" opacity="0.4"/>
+        </svg>
+      </div>
     </div>
+  </section>
 
-    <div class="process">
-        <p>🔄 El sistema analiza los datos usando algoritmos médicos...</p>
+  <!-- PROCESO -->
+  <section id="proceso">
+    <div class="section-label">// 03 — Flujo de trabajo</div>
+    <h2 class="section-title">El <span>proceso</span> computacional</h2>
+    <div class="section-divider"></div>
+    <div class="proceso-steps">
+      <div class="step">
+        <div class="step-circle">01</div>
+        <div class="step-title">Concepto</div>
+        <p class="step-desc">El arquitecto define los requisitos del proyecto: función, contexto, restricciones y objetivos estéticos.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">02</div>
+        <div class="step-title">Algoritmo</div>
+        <p class="step-desc">Se traduce el concepto a parámetros y reglas computacionales que generan múltiples variantes de diseño.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">03</div>
+        <div class="step-title">Simulación</div>
+        <p class="step-desc">Las propuestas se evalúan mediante simulaciones estructurales, energéticas y de flujo de personas.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">04</div>
+        <div class="step-title">Optimización</div>
+        <p class="step-desc">Algoritmos evolutivos seleccionan y mejoran las soluciones más eficientes de forma automática.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">05</div>
+        <div class="step-title">Construcción</div>
+        <p class="step-desc">Los archivos digitales guían directamente la fabricación y construcción con precisión milimétrica.</p>
+      </div>
     </div>
+  </section>
 
-    <div class="result">
-        <h3>Resultado:</h3>
-        <p>Posible diagnóstico: <strong>Infección viral</strong></p>
-        <p>Recomendación: acudir a un médico para confirmación.</p>
-    </div>
-</section>
-
-<section class="info">
-    <h2>¿Cómo ayuda la computación?</h2>
-
-    <div class="cards">
-        <div class="card">
-            <h3>📊 Análisis de datos</h3>
-            <p>Procesa grandes cantidades de información médica.</p>
+  <!-- IMPACTO -->
+  <section id="impacto">
+    <div class="section-label">// 04 — Impacto real</div>
+    <h2 class="section-title">¿Qué <span>cambia</span> con la computación?</h2>
+    <div class="section-divider"></div>
+    <div class="impacto-layout">
+      <div class="impacto-intro">
+        <p>La computación no es solo una herramienta más: transforma fundamentalmente lo que es posible diseñar, cómo se diseña y quién puede diseñarlo.</p>
+        <p>Edificios que antes eran imposibles de calcular a mano ahora se construyen en todo el mundo gracias a la potencia computacional.</p>
+      </div>
+      <div class="impacto-grid">
+        <div class="impacto-item">
+          <div class="impacto-num">40%</div>
+          <div class="impacto-label">Ahorro energético</div>
+          <p class="impacto-desc">Los edificios diseñados con simulación energética consumen hasta un 40% menos que los convencionales.</p>
         </div>
-
-        <div class="card">
-            <h3>⚡ Rapidez</h3>
-            <p>Reduce el tiempo de diagnóstico.</p>
+        <div class="impacto-item">
+          <div class="impacto-num">10x</div>
+          <div class="impacto-label">Más opciones de diseño</div>
+          <p class="impacto-desc">El diseño generativo produce cientos de variantes evaluadas automáticamente en segundos.</p>
         </div>
-
-        <div class="card">
-            <h3>🧠 Precisión</h3>
-            <p>Ayuda a detectar enfermedades con mayor exactitud.</p>
+        <div class="impacto-item">
+          <div class="impacto-num">60%</div>
+          <div class="impacto-label">Menos desperdicio</div>
+          <p class="impacto-desc">La fabricación digital optimiza el corte de materiales reduciendo los residuos de construcción.</p>
         </div>
+        <div class="impacto-item">
+          <div class="impacto-num">∞</div>
+          <div class="impacto-label">Formas nuevas</div>
+          <p class="impacto-desc">La Ópera de Sydney, el Museo Guggenheim Bilbao o el CCTV de Pekín no existirían sin computación.</p>
+        </div>
+      </div>
     </div>
-</section>
+  </section>
 
-<footer>
-    <p>Proyecto escolar - Computación aplicada</p>
-</footer>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">ARCH×COMP</div>
+    <div class="footer-info">
+      Proyecto Escolar — Computación Aplicada a la Arquitectura<br>
+      <span style="color:rgba(0,229,255,0.4); font-size:0.75rem;">HTML + CSS · Sin JavaScript</span>
+    </div>
+    <div class="footer-line">Sistema v1.0 // 2025</div>
+  </footer>
 
 </body>
 </html>
